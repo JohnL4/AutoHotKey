@@ -111,6 +111,6 @@ return
 #f::
 FormatTime, dt,, d MMM yyyy h:mm tt
 tzo := tzoffset()
-SendInput From John Lusk`, %dt% %tzo% --
+SendInput %dt% %tzo% -- John Lusk --
 return
 
