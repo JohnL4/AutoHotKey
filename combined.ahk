@@ -106,6 +106,7 @@ IfWinExist Tabs Outliner
 }
 return
 
+; Jam a "from" line in whatever (in my case, an issue-tracking/workflow system that doesn't actually this in a useful manner).
 ; "From <name> <date>:"
 #f::
 FormatTime, dt,, d MMM yyyy h:mm tt
