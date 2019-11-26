@@ -10,6 +10,39 @@ SetTitleMatchMode, Fast
 ; Sleep, 60000
 ; Reload
 
+tzoffset()
+{
+    ;Returns ISO-8601 time zone offset from UTC in form "{+|-}HH:MM".
+    ;Completely insane snippet from https://www.autohotkey.com/boards/viewtopic.php?t=65544#time_zone_dst
+    ;
+    VarSetCapacity(TIME_ZONE_INFORMATION, 172, 0)
+    vRet := DllCall("kernel32\GetTimeZoneInformation", "Ptr",&TIME_ZONE_INFORMATION, "UInt")
+    oArray := ["unknown", "no", "yes"]
+    vIsDST := oArray[vRet+1]
+    vBias := NumGet(&TIME_ZONE_INFORMATION, 0, "Int")
+    vStdOffset := vBias + NumGet(&TIME_ZONE_INFORMATION, 84, "Int")
+    vDltOffset := vBias + NumGet(&TIME_ZONE_INFORMATION, 168, "Int")
+    if (vRet = 1) ;TIME_ZONE_ID_STANDARD := 1
+    vOffset := vStdOffset
+    else if (vRet = 2) ;TIME_ZONE_ID_DAYLIGHT := 2
+    vOffset := vDltOffset
+    else ;TIME_ZONE_ID_UNKNOWN := 0
+    vOffset := ""
+    vOffsetH := Floor( Abs( vOffset)/60)                  ; Hours
+    vOffsetM := Abs( vOffset) - 60 * vOffsetH             ; Minutes
+    ; Format tzoffset for use in timestamps
+    vOffsetHHMM := (vOffset>0?"-":"+") Format( "{1:02d}:{2:02d}", vOffsetH, vOffsetM)
+    ; vOutput := "is DST: " vIsDST "`r`n`r`n"
+    ; vOutput .= "current offset: " vOffset "`r`n"
+    ; vOutput .= "non-DST offset: " vStdOffset "`r`n"
+    ; vOutput .= "DST offset: " vDltOffset "`r`n`r`n"
+    ; vOutput .= "UTC to local: " (vOffset>0?"-":"+") Abs(vDltOffset) "`r`n" ;note: invert the sign
+    ; vOutput .= "local to UTC: " (vOffset<0?"-":"+") Abs(vDltOffset) "`r`n"
+    ; vOutput .= "TZOffset: '" vOffsetHHMM "'"
+    ; MsgBox, % vOutput
+    return vOffsetHHMM
+}
+
 ; Atom: C:\Users\j6l\AppData\Local\atom\update.exe --processStart atom.exe
 #a::
 IfWinExist \bAtom$
@@ -64,11 +97,19 @@ else
    WinWait Visual.Studio.Code
    WinActivate
 }
+return
 
 F4::
 IfWinExist Tabs Outliner
 {
    WinActivate
 }
+return
+
+; "From <name> <date>:"
+#f::
+FormatTime, dt,, d MMM yyyy h:mm tt
+tzo := tzoffset()
+SendInput From John Lusk`, %dt% %tzo% --
 return
 
